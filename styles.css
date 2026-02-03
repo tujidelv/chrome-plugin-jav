@@ -332,6 +332,60 @@
   box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.1);
 }
 
+/* 重新提问容器（仅解释结果） */
+.reask-container {
+  margin-top: 12px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.reask-input {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid #E0E0E0;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: 'Microsoft YaHei', 'SimHei', Arial, Helvetica, sans-serif;
+  transition: border-color 0.15s ease;
+}
+
+.reask-input:focus {
+  outline: none;
+  border-color: #4285F4;
+}
+
+.reask-input:disabled {
+  background: #F5F5F5;
+  cursor: not-allowed;
+}
+
+.reask-btn {
+  flex-shrink: 0;
+  padding: 6px 14px;
+  background: #4285F4;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  font-family: 'Microsoft YaHei', 'SimHei', Arial, Helvetica, sans-serif;
+}
+
+.reask-btn:hover:not(:disabled) {
+  background: #1976D2;
+}
+
+.reask-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.reask-btn:disabled {
+  background: #CCCCCC;
+  cursor: not-allowed;
+}
+
 /* 一键替换按钮 */
 .replace-btn {
   margin-top: 8px;

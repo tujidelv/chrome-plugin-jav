@@ -9,6 +9,8 @@ let currentReadingUtterance = null; // 当前朗读的语音对象
 let toastTimer = null; // 轻提示定时器
 /** 用户通过弹窗配置的覆盖项（从 chrome.storage 加载，优先于 config.js） */
 let userConfigOverrides = {};
+// 用于抑制“输入框回车”触发的下一次 keyup 选区检测（避免误关弹窗）
+let suppressNextKeyupSelection = false;
 
 chrome.storage.local.get(['kimiConfigOverrides'], (res) => {
   if (res.kimiConfigOverrides) userConfigOverrides = res.kimiConfigOverrides;
@@ -71,6 +73,20 @@ function showToast(message, durationMs) {
 function handleTextSelection(e) {
   // 按 Esc 松开时不要根据选区重新打开弹窗（keydown 已关闭弹窗，keyup 若仍处理会立刻重建）
   if (e.type === 'keyup' && e.key === 'Escape') {
+    return;
+  }
+
+  // 输入框回车时会触发一次全局 keyup，且我们可能在 keydown 里禁用了输入框导致 keyup 的 target 变成 body
+  // 这里吞掉“下一次 keyup”，避免误判为“无选区→关闭弹窗”
+  if (e.type === 'keyup' && suppressNextKeyupSelection) {
+    suppressNextKeyupSelection = false;
+    return;
+  }
+
+  // 如果事件来自弹窗内部（输入框/按钮等），直接忽略
+  // 说明：之前在 setTimeout 内再判断，可能在延迟回调时机下误判导致弹窗被关闭
+  const clickedInsidePopupNow = popup && e.target && popup.contains(e.target);
+  if (clickedInsidePopupNow) {
     return;
   }
 
@@ -587,6 +603,7 @@ function showLoadingResult(id, title) {
 
 /**
  * 显示结果（解释/翻译），带复制按钮
+ * 解释结果额外支持"重新提问"功能
  */
 function showResult(id, title, content) {
   const resultItem = document.getElementById(`result-${id}`);
@@ -625,6 +642,132 @@ function showResult(id, title, content) {
 
   resultItem.appendChild(titleRow);
   resultItem.appendChild(contentDiv);
+
+  // 解释结果额外添加"重新提问"功能
+  if (id === 'explain') {
+    const reaskContainer = document.createElement('div');
+    reaskContainer.className = 'reask-container';
+    
+    const reaskInput = document.createElement('input');
+    reaskInput.type = 'text';
+    reaskInput.className = 'reask-input';
+    reaskInput.placeholder = '对解释不满意？输入新问题重新提问...';
+    reaskInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        e.stopPropagation();
+        // 标记：吞掉紧随其后的 keyup(Enter) 选区检测，避免弹窗被误关闭
+        suppressNextKeyupSelection = true;
+        handleReask(reaskInput.value.trim());
+      }
+    });
+
+    const reaskBtn = document.createElement('button');
+    reaskBtn.type = 'button';
+    reaskBtn.className = 'reask-btn';
+    reaskBtn.textContent = '重新提问';
+    reaskBtn.addEventListener('click', () => {
+      handleReask(reaskInput.value.trim());
+    });
+
+    reaskContainer.appendChild(reaskInput);
+    reaskContainer.appendChild(reaskBtn);
+    resultItem.appendChild(reaskContainer);
+
+    // 通用解释展示完成后，自动把光标定位到输入框，方便立刻追问（无需动鼠标）
+    setTimeout(() => {
+      if (!popup || reaskInput.disabled) return;
+      try {
+        reaskInput.focus({ preventScroll: true });
+      } catch (_) {
+        reaskInput.focus();
+      }
+      const len = reaskInput.value.length;
+      if (typeof reaskInput.setSelectionRange === 'function') {
+        reaskInput.setSelectionRange(len, len);
+      }
+    }, 0);
+  }
+}
+
+/**
+ * 处理重新提问（针对解释功能）
+ * @param {string} newQuestion - 用户输入的新问题
+ */
+async function handleReask(newQuestion) {
+  if (!newQuestion || newQuestion.trim() === '') {
+    showToast('请输入问题', 1500);
+    return;
+  }
+
+  const resultItem = document.getElementById('result-explain');
+  if (!resultItem) return;
+
+  const reaskBtn = resultItem.querySelector('.reask-btn');
+  const reaskInput = resultItem.querySelector('.reask-input');
+  // 注意：不要在 keydown(Enter) 里立刻 disable 聚焦的 input，
+  // 否则随后的 keyup 事件 target 可能变成 body，触发全局选区监听误关弹窗
+  const disableTimer = setTimeout(() => {
+    if (reaskBtn) reaskBtn.disabled = true;
+    if (reaskInput) reaskInput.disabled = true;
+  }, 0);
+
+  showProgressBar();
+  const contentDiv = resultItem.querySelector('.result-content');
+  if (contentDiv) {
+    contentDiv.className = 'result-content loading-text';
+    contentDiv.textContent = '正在重新提问...';
+  }
+
+  try {
+    // 重新提问时，将原始文本和用户新问题一起发送，让 AI 理解上下文
+    const enhancedPrompt = `原始文本：${selectedText}\n\n用户追问：${newQuestion}\n\n请基于原始文本，回答用户的新问题。`;
+    const response = await sendMessageWithTimeout({
+      action: 'callKimiAPI',
+      prompt: enhancedPrompt,
+      type: 'explain'
+    }, getApiTimeoutMs());
+
+    if (response && response.success) {
+      if (contentDiv) {
+        contentDiv.className = 'result-content';
+        contentDiv.textContent = response.data;
+      }
+      if (reaskInput) reaskInput.value = '';
+      showToast('已回答', 1500);
+    } else {
+      showError('explain', (response && response.error) || '重新提问失败，请重试');
+    }
+  } catch (error) {
+    console.error('重新提问错误:', error);
+    showError('explain', error.message || '重新提问失败，请检查网络连接和 API 配置');
+  } finally {
+    // 防止 disable 的 setTimeout 在 finally 之后才执行，导致输入框又被禁用
+    clearTimeout(disableTimer);
+    if (reaskBtn) reaskBtn.disabled = false;
+    if (reaskInput) reaskInput.disabled = false;
+    hideProgressBar();
+
+    // 让用户可以连续追问：请求结束后把光标放回输入框（不需要动鼠标）
+    if (reaskInput) {
+      setTimeout(() => {
+        try {
+          reaskInput.focus({ preventScroll: true });
+        } catch (_) {
+          reaskInput.focus();
+        }
+        // 光标放到末尾（成功时输入框已清空；失败时保留用户输入便于修改）
+        const len = reaskInput.value.length;
+        if (typeof reaskInput.setSelectionRange === 'function') {
+          reaskInput.setSelectionRange(len, len);
+        }
+        // 若结果很长导致输入框不在视区内，尽量保持可见
+        if (typeof reaskInput.scrollIntoView === 'function') {
+          reaskInput.scrollIntoView({ block: 'nearest' });
+        }
+      }, 0);
+    }
+  }
 }
 
 /**
