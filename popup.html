@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>文本助手 - 设置</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      width: 360px;
+      min-height: 320px;
+      margin: 0;
+      padding: 12px 14px;
+      font-family: 'Microsoft YaHei', 'SimHei', Arial, sans-serif;
+      font-size: 13px;
+      color: #333;
+      background: #fff;
+    }
+    h2 {
+      margin: 0 0 12px 0;
+      font-size: 15px;
+      font-weight: 600;
+      color: #333;
+    }
+    .tip {
+      margin-bottom: 12px;
+      padding: 8px 10px;
+      background: #E8F5E9;
+      border-radius: 6px;
+      font-size: 12px;
+      color: #2E7D32;
+    }
+    .form-group {
+      margin-bottom: 10px;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 4px;
+      font-weight: 500;
+      color: #555;
+    }
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 6px 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+    .form-group input:focus {
+      outline: none;
+      border-color: #4285F4;
+    }
+    .form-group .hint {
+      margin-top: 4px;
+      font-size: 11px;
+      color: #888;
+    }
+    .btn-row {
+      margin-top: 14px;
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .btn-primary {
+      background: #4285F4;
+      color: #fff;
+    }
+    .btn-primary:hover {
+      background: #1976D2;
+    }
+    .btn-secondary {
+      background: #f5f5f5;
+      color: #333;
+    }
+    .btn-secondary:hover {
+      background: #eee;
+    }
+    #saveTip {
+      margin-top: 8px;
+      font-size: 12px;
+      color: #34A853;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h2>文本助手 - API 配置</h2>
+  <p class="tip">请填写您的 Kimi API 信息，配置后选中网页文字即可使用解释、翻译、润色功能。</p>
+
+  <div class="form-group">
+    <label for="apiUrl">API 地址</label>
+    <input type="text" id="apiUrl" placeholder="https://api.moonshot.cn/v1/chat/completions">
+    <div class="hint">默认 Kimi 官方地址，可改为自建或代理地址</div>
+  </div>
+
+  <div class="form-group">
+    <label for="apiKey">API Key <span style="color:#d32f2f">*</span></label>
+    <input type="password" id="apiKey" placeholder="请在 Kimi 开放平台创建 API Key">
+    <div class="hint"><a href="https://platform.moonshot.cn/console" target="_blank">Kimi 开放平台</a> → API Key 管理</div>
+  </div>
+
+  <div class="form-group">
+    <label for="model">模型</label>
+    <select id="model">
+      <option value="moonshot-v1-8k">moonshot-v1-8k</option>
+      <option value="moonshot-v1-32k">moonshot-v1-32k</option>
+      <option value="moonshot-v1-128k">moonshot-v1-128k</option>
+      <option value="kimi-k2-turbo-preview">kimi-k2-turbo-preview</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label for="maxTokens">最大输出 Token</label>
+    <input type="number" id="maxTokens" min="100" max="128000" value="2000">
+  </div>
+
+  <div class="form-group">
+    <label for="temperature">温度 (0-2)</label>
+    <input type="number" id="temperature" min="0" max="2" step="0.1" value="0.6">
+  </div>
+
+  <div class="form-group">
+    <label for="apiTimeoutMs">请求超时（毫秒）</label>
+    <input type="number" id="apiTimeoutMs" min="5000" value="60000">
+  </div>
+
+  <div class="form-group">
+    <label for="progressBarText">进度条提示语</label>
+    <input type="text" id="progressBarText" placeholder="正在请求 Kimi API...">
+  </div>
+
+  <div class="btn-row">
+    <button type="button" class="btn btn-secondary" id="btnReset">恢复默认</button>
+    <button type="button" class="btn btn-primary" id="btnSave">保存</button>
+  </div>
+  <div id="saveTip">已保存</div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,440 @@
+/* Chrome插件样式文件 - 参考doubaoui风格 */
+
+/* 悬浮弹窗容器 - 固定宽度便于结果区铺满 */
+.text-assistant-popup {
+  position: absolute;
+  z-index: 999999;
+  width: 480px;
+  max-width: min(520px, 95vw);
+  min-width: 300px;
+  background: #FFFFFF;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-family: 'Microsoft YaHei', 'SimHei', Arial, Helvetica, sans-serif;
+  font-size: 14px;
+  color: #333333;
+  animation: fadeInUp 0.2s ease-out;
+  border: 1px solid #E0E0E0;
+  box-sizing: border-box;
+}
+
+/* 淡入上移动画 */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 按钮工具栏 */
+.popup-toolbar {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-bottom: 1px solid #E0E0E0;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* 功能按钮基础样式 */
+.popup-btn {
+  height: 36px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  background: #F5F5F5;
+  color: #333333;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Microsoft YaHei', 'SimHei', Arial, Helvetica, sans-serif;
+}
+
+.popup-btn:hover {
+  background: #4285F4;
+  color: #FFFFFF;
+  transform: scale(1.02);
+}
+
+.popup-btn:active {
+  transform: scale(0.95);
+}
+
+.popup-btn.active {
+  background: #1976D2;
+  color: #FFFFFF;
+}
+
+.popup-btn.loading,
+.popup-btn:disabled {
+  background: #E0E0E0;
+  color: #666666;
+  cursor: wait;
+  position: relative;
+}
+
+.popup-btn:disabled:hover {
+  background: #E0E0E0;
+  color: #666666;
+  transform: none;
+}
+
+.popup-btn.loading::after {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border: 2px solid #666666;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  right: 8px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 翻译按钮特殊样式（带下拉箭头） */
+.translate-btn {
+  position: relative;
+}
+
+.translate-btn::after {
+  content: '▼';
+  font-size: 10px;
+  margin-left: 4px;
+}
+
+/* 朗读按钮特殊状态 */
+.read-btn.reading {
+  background: #F44336;
+  color: #FFFFFF;
+}
+
+/* 分隔符 */
+.toolbar-divider {
+  width: 1px;
+  height: 24px;
+  background: #E0E0E0;
+  margin: 0 4px;
+}
+
+/* 翻译语言选择下拉菜单 */
+.translate-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 4px;
+  background: #FFFFFF;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  min-width: 140px;
+  z-index: 1000000;
+  border: 1px solid #E0E0E0;
+  animation: fadeIn 0.15s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.translate-menu-item {
+  padding: 10px 16px;
+  cursor: pointer;
+  color: #333333;
+  font-size: 14px;
+  transition: background 0.15s ease;
+}
+
+.translate-menu-item:hover {
+  background: #F5F5F5;
+}
+
+.translate-menu-item:first-child {
+  border-radius: 6px 6px 0 0;
+}
+
+.translate-menu-item:last-child {
+  border-radius: 0 0 6px 6px;
+}
+
+/* 全局请求进度条 - 正在请求时显示 */
+.api-progress-bar {
+  display: none;
+  padding: 10px 12px;
+  min-height: 40px;
+  background: linear-gradient(90deg, #E3F2FD 0%, #BBDEFB 50%, #E3F2FD 100%);
+  background-size: 200% 100%;
+  animation: progressBarBg 1.5s ease-in-out infinite;
+  border-bottom: 1px solid #BBDEFB;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: #1976D2;
+  box-sizing: border-box;
+}
+
+.api-progress-bar.visible {
+  display: flex !important;
+}
+
+@keyframes progressBarBg {
+  0%, 100% { background-position: 100% 0; }
+  50% { background-position: 0 0; }
+}
+
+/* 进度条轨道 */
+.api-progress-track {
+  flex: 1;
+  height: 6px;
+  background: #E0E0E0;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+/* 进度条动画条（无限循环） */
+.api-progress-fill {
+  height: 100%;
+  width: 40%;
+  background: #4285F4;
+  border-radius: 3px;
+  animation: progressFill 1.2s ease-in-out infinite;
+}
+
+@keyframes progressFill {
+  0% { transform: translateX(-100%); }
+  50% { transform: translateX(350%); }
+  100% { transform: translateX(-100%); }
+}
+
+.api-progress-text {
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+/* 结果显示区域 */
+.popup-results {
+  padding: 12px;
+  max-height: 400px;
+  overflow-y: auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* 单个结果项 - 占满可用宽度 */
+.result-item {
+  margin-bottom: 16px;
+  animation: slideDown 0.3s ease-out;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.result-item:last-child {
+  margin-bottom: 0;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 500px;
+  }
+}
+
+/* 结果标题行（标题 + 复制按钮） */
+.result-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.result-title {
+  font-size: 14px;
+  color: #666666;
+  flex: 1;
+  min-width: 0;
+}
+
+/* 复制按钮 */
+.copy-btn {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  font-size: 12px;
+  color: #4285F4;
+  background: transparent;
+  border: 1px solid #4285F4;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.copy-btn:hover {
+  background: #E8F0FE;
+  color: #1976D2;
+}
+
+.copy-btn.copied {
+  color: #34A853;
+  border-color: #34A853;
+  background: #E6F4EA;
+}
+
+.result-title-icon {
+  font-size: 16px;
+}
+
+/* 结果内容区域 - 自适应铺满宽度 */
+.result-content {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  background: #FAFAFA;
+  border: 1px solid #E0E0E0;
+  border-radius: 6px;
+  padding: 12px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #333333;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+}
+
+/* 润色结果的可编辑文本框 - 铺满整行 */
+.result-content.editable {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 0; /* 避免 flex 子项撑破容器 */
+  background: #FFFFFF;
+  border: 1px solid #4285F4;
+  min-height: 80px;
+  resize: vertical;
+  font-family: 'Microsoft YaHei', 'SimHei', Arial, Helvetica, sans-serif;
+}
+
+.result-content.editable:focus {
+  outline: none;
+  border-color: #1976D2;
+  box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.1);
+}
+
+/* 一键替换按钮 */
+.replace-btn {
+  margin-top: 8px;
+  padding: 6px 16px;
+  background: #4285F4;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  float: right;
+  transition: background 0.15s ease;
+}
+
+.replace-btn:hover {
+  background: #1976D2;
+}
+
+.replace-btn:active {
+  transform: scale(0.98);
+}
+
+/* 加载状态 */
+.loading-text {
+  color: #999999;
+  font-size: 13px;
+  text-align: center;
+  padding: 20px;
+}
+
+/* 错误状态 */
+.error-text {
+  color: #F44336;
+  font-size: 13px;
+  padding: 12px;
+  background: #FFEBEE;
+  border-radius: 6px;
+  border: 1px solid #FFCDD2;
+}
+
+/* 分割线 */
+.result-divider {
+  height: 1px;
+  background: #E0E0E0;
+  margin: 12px 0;
+}
+
+/* 滚动条样式 */
+.popup-results::-webkit-scrollbar {
+  width: 6px;
+}
+
+.popup-results::-webkit-scrollbar-track {
+  background: #F5F5F5;
+  border-radius: 3px;
+}
+
+.popup-results::-webkit-scrollbar-thumb {
+  background: #CCCCCC;
+  border-radius: 3px;
+}
+
+.popup-results::-webkit-scrollbar-thumb:hover {
+  background: #999999;
+}
+
+/* 轻提示（替代 alert） */
+.toast-hint {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 16px;
+  background: rgba(0, 0, 0, 0.75);
+  color: #fff;
+  font-size: 13px;
+  border-radius: 6px;
+  z-index: 1000001;
+  animation: toastIn 0.2s ease-out;
+  max-width: 90%;
+  text-align: center;
+}
+
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* 响应式调整 */
+@media (max-width: 400px) {
+  .text-assistant-popup {
+    min-width: 280px;
+    max-width: 95vw;
+  }
+  
+  .popup-btn {
+    font-size: 13px;
+    padding: 6px 12px;
+  }
+}
